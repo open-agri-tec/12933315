@@ -1,0 +1,31 @@
+/* スマホ向け下部ナビゲーションのスタイル */
+/* ボトムナビゲーション: ダークテーマに合わせてデザイン */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background-color: var(--panel);
+  border-top: 1px solid var(--line);
+  z-index: 100;
+}
+
+.bottom-nav a {
+  flex: 1;
+  padding: 12px 0;
+  text-align: center;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.bottom-nav a.active {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* 色設定はroot変数で調整するためここでは特に追加しない */
+}

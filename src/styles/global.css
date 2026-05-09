@@ -1,0 +1,321 @@
+/* Global styles applied throughout the application. */
+/* グローバルスタイル: ダークテーマを基本とし、スマホでの閲覧を意識しています */
+:root {
+  --bg0: #10161f;
+  --bg1: #182335;
+  --panel: rgba(19, 28, 41, 0.82);
+  --panel2: rgba(255, 255, 255, 0.075);
+  --line: rgba(255, 255, 255, 0.16);
+  --text: #eaf2ff;
+  --muted: #9fb0c4;
+  --accent: #88d8c0;
+  --accent2: #f2c879;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 20% 12%, rgba(136,216,192,.26), transparent 32%),
+    radial-gradient(circle at 80% 5%, rgba(242,200,121,.18), transparent 28%),
+    linear-gradient(160deg, var(--bg0), var(--bg1) 58%, #222b35);
+  min-height: 100vh;
+}
+
+.app-container {
+  padding-bottom: 70px; /* ナビゲーションのスペース確保 */
+}
+
+h1 {
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+p {
+  font-size: 16px;
+  padding: 0 16px;
+  line-height: 1.5;
+}
+
+/* タグセレクタのスタイル */
+.tag-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+.tag-selector .tag {
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--muted);
+  background-color: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+}
+.tag-selector .tag.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+
+/* フォーム要素 */
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background-color: var(--panel);
+  color: var(--text);
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #000;
+  background-color: var(--accent);
+}
+
+button.gold {
+  background-color: var(--accent2);
+}
+
+.food-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.food-card {
+  padding: 12px;
+  border-radius: 12px;
+  background-color: var(--panel);
+  border: 1px solid var(--line);
+}
+.food-card.fed {
+  opacity: 0.5;
+}
+
+.food-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.food-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 観察画面用メーターバー */
+.meter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.meter-row span:first-child {
+  width: 70px;
+  font-size: 14px;
+}
+.bar {
+  flex: 1;
+  background-color: var(--panel2);
+  border-radius: 4px;
+  overflow: hidden;
+  height: 8px;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: 4px;
+}
+.meter-row span:last-child {
+  font-size: 12px;
+  color: var(--muted);
+  width: 36px;
+  text-align: right;
+}
+
+/* モンスターカードスタイル */
+.monster-card {
+  background-color: var(--panel);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin: 16px;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+
+.monster-icon {
+  color: var(--accent2);
+  margin-bottom: 8px;
+}
+
+.monster-info h2 {
+  margin: 4px 0;
+  font-size: 20px;
+}
+
+.monster-info p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ホーム画面の大きなボタン群 */
+.home-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 16px 32px;
+}
+
+.home-buttons a {
+  display: block;
+  padding: 16px;
+  background-color: var(--panel);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  text-align: center;
+  font-size: 18px;
+  color: var(--accent);
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.home-buttons a.primary {
+  background-color: var(--accent2);
+  color: #000;
+}
+
+.home-buttons a:hover {
+  background-color: var(--accent);
+  color: #000;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.log-entry {
+  padding: 12px;
+  background-color: var(--panel);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+/* ver0.6 hotfix: FontAwesomeを使わずCSSでモンスターを描画 */
+.monster-stage-mini {
+  width: 142px;
+  height: 142px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+}
+
+.monster-aura-mini {
+  position: absolute;
+  width: 132px;
+  height: 132px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(136,216,192,.28), transparent 63%),
+    conic-gradient(from 180deg, transparent, rgba(242,200,121,.16), transparent, rgba(136,216,192,.2), transparent);
+  animation: auraSpin 6s linear infinite;
+}
+
+.css-monster {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  filter: drop-shadow(0 18px 22px rgba(0,0,0,.42));
+  animation: idleFloat 2.8s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+.css-body {
+  position: absolute;
+  left: 16px;
+  top: 30px;
+  width: 80px;
+  height: 74px;
+  border-radius: 45% 45% 48% 48%;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.22), transparent 35%),
+    linear-gradient(160deg, #8bd6c7, #426d83 58%, #273b57);
+  border: 3px solid rgba(235,255,255,.8);
+  box-shadow: inset -9px -12px rgba(0,0,0,.16), inset 7px 9px rgba(255,255,255,.08);
+}
+
+.css-sprout {
+  position: absolute;
+  left: 49px;
+  top: 5px;
+  width: 16px;
+  height: 34px;
+  border-radius: 20px 20px 8px 8px;
+  background: linear-gradient(#b8e28b, #65a56e);
+  border: 3px solid rgba(235,255,255,.75);
+  transform: rotate(-8deg);
+  z-index: 2;
+}
+
+.css-leaf {
+  position: absolute;
+  left: 62px;
+  top: 18px;
+  width: 34px;
+  height: 20px;
+  border-radius: 90% 10% 90% 10%;
+  background: linear-gradient(135deg, #c8ed9b, #69a96d);
+  border: 3px solid rgba(235,255,255,.75);
+  transform: rotate(-16deg);
+  z-index: 2;
+}
+
+.css-eye {
+  position: absolute;
+  top: 60px;
+  width: 10px;
+  height: 14px;
+  border-radius: 999px;
+  background: #10161f;
+  box-shadow: inset 3px 2px #fff;
+  z-index: 3;
+  animation: blink 4.8s infinite;
+}
+
+.css-eye-left { left: 41px; }
+.css-eye-right { right: 41px; animation-delay: .04s; }
+
+.css-mouth {
+  position: absolute;
+  left: 49px;
+  top: 82px;
+  width: 16px;
+  height: 8px;
+  border-bottom: 3px solid #122234;
+  border-radius: 0 0 20px 20px;
+  z-index: 3;
+}
+
+@keyframes auraSpin { to { transform: rotate(360deg); } }
+@keyframes idleFloat {
+  0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-8px) scale(1.025) rotate(.4deg); }
+}
+@keyframes blink {
+  0%, 91%, 94%, 100% { transform: scaleY(1); }
+  92.2%, 93.2% { transform: scaleY(.08); }
+}

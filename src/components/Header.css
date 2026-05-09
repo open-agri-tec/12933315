@@ -1,0 +1,35 @@
+/* ヘッダーのスタイル */
+.header {
+  padding: 14px 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.brand .sub {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.clock {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+  line-height: 1.35;
+  white-space: pre; /* 改行をそのまま表示 */
+}
