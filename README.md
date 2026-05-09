@@ -28,16 +28,34 @@ agri-game-app/
 
 ## インストールと実行
 
-このプロジェクトは Vite を用いた React + TypeScript 構成です。公式ドキュメントによると、Vite は Node.js 20.19 以上 (または 22.12 以上) が必要です【382753496277014†L271-L273】。ローカル環境で以下を実行して依存関係をインストールし、開発サーバーを起動してください。
+このプロジェクトは Vite を用いた React + TypeScript 構成です。ローカル環境で以下を実行して依存関係をインストールし、開発サーバーを起動してください。
 
 ```bash
 npm install
 npm run dev
 ```
 
-`npm run dev` で Vite 開発サーバーが立ち上がり、ブラウザで確認できます。`npm run build` で本番ビルドを生成し、`npm run preview` で本番ビルドのプレビューができます。
+`npm run dev` で Vite 開発サーバーが立ち上がり、ブラウザで確認できます。
 
-> **注意:** 現在の実行環境では外部ネットワークに接続できないため、依存パッケージのインストールを実行していません。必要なライブラリは `package.json` に記述してあるので、ネットワーク接続が可能な環境で `npm install` を実行してください。
+本番ビルドを生成する場合は、以下を実行してください。
+
+```bash
+npm run build
+```
+
+`npm run preview` で本番ビルドのプレビューができます。
+
+## GitHub Pages での公開
+
+GitHub Pages で公開する場合の URL は以下です。
+
+```text
+https://open-agri-tec.github.io/12933315/
+```
+
+Vite の `base` は、この公開 URL のリポジトリ名に合わせて `/12933315/` に設定しています。
+
+> **注意:** `node_modules` は Git 管理しないでください。依存パッケージは `package.json` と `package-lock.json` をもとに、必要な環境で `npm install` を実行して復元します。
 
 ## Git 運用
 
