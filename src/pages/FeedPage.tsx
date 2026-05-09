@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useFarm, TAGS } from '../context/FarmContext';
+import { Link } from 'react-router-dom';
 import TagSelector from '../components/TagSelector';
 
 /**
@@ -7,7 +8,7 @@ import TagSelector from '../components/TagSelector';
  * 入力がない場合は自動タグ付けが行われます。
  */
 const FeedPage: React.FC = () => {
-  const { createFood } = useFarm();
+  const { activeMonster, createFood } = useFarm();
   // 手動生成用の入力状態
   const [memo, setMemo] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -15,6 +16,18 @@ const FeedPage: React.FC = () => {
   const [crop, setCrop] = useState('');
   // クイック生成用のメモをカテゴリ別に保存
   const [quickMemo, setQuickMemo] = useState<Record<string, string>>({});
+
+  if (!activeMonster) {
+    return (
+      <div className="page feed-page">
+        <h1>エサ生成</h1>
+        <div className="notice-card">
+          <p>先にタマゴを作ってください。</p>
+          <Link className="egg-create-link" to="/egg/new">タマゴの情報を入力する</Link>
+        </div>
+      </div>
+    );
+  }
 
   const handleGenerate = () => {
     if (!memo && selectedTags.length === 0) {
