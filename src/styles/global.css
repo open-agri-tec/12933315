@@ -319,3 +319,203 @@ button.gold {
   0%, 91%, 94%, 100% { transform: scaleY(1); }
   92.2%, 93.2% { transform: scaleY(.08); }
 }
+
+/* ver0.6: 初回タマゴ作成フロー */
+select,
+input[type="date"] {
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background-color: var(--panel);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+input[type="text"],
+textarea {
+  box-sizing: border-box;
+}
+
+.egg-form {
+  margin: 0 16px 32px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background-color: var(--panel);
+}
+
+.required,
+.optional {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--accent2);
+}
+
+.optional {
+  color: var(--muted);
+}
+
+.form-error {
+  margin: 0 0 12px;
+  padding: 0;
+  color: #ffb4a8;
+  font-size: 14px;
+}
+
+.notice-card {
+  margin: 16px;
+  padding: 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background-color: var(--panel);
+  text-align: center;
+}
+
+.notice-card p {
+  margin-top: 0;
+}
+
+.empty-monster-card {
+  min-height: 260px;
+  display: grid;
+  align-content: center;
+}
+
+.empty-egg {
+  width: 108px;
+  height: 138px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 52% 52% 46% 46% / 62% 62% 38% 38%;
+  border: 2px dashed rgba(255,255,255,.36);
+  color: var(--muted);
+  font-size: 40px;
+  background: rgba(255,255,255,.04);
+}
+
+.egg-create-link,
+.egg-add-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background-color: var(--accent2);
+  color: #000;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.egg-stage-mini {
+  width: 150px;
+  height: 160px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+}
+
+.css-egg {
+  --egg-tone: #88d8c0;
+  position: relative;
+  width: 96px;
+  height: 126px;
+  border-radius: 52% 52% 46% 46% / 62% 62% 38% 38%;
+  border: 3px solid rgba(235,255,255,.78);
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255,255,255,.52), transparent 18%),
+    linear-gradient(145deg, rgba(255,255,255,.22), transparent 34%),
+    linear-gradient(160deg, var(--egg-tone), #28364b 78%);
+  box-shadow: inset -12px -18px rgba(0,0,0,.2), 0 20px 26px rgba(0,0,0,.4);
+  animation: eggWobble 3.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+.egg-speckle {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  background-color: rgba(16, 22, 31, .28);
+}
+
+.egg-speckle-a { width: 14px; height: 20px; left: 24px; top: 52px; transform: rotate(22deg); }
+.egg-speckle-b { width: 10px; height: 10px; right: 22px; top: 35px; }
+.egg-speckle-c { width: 18px; height: 11px; right: 26px; bottom: 30px; transform: rotate(-14deg); }
+
+@keyframes eggWobble {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-9px) rotate(1.5deg); }
+}
+
+.egg-detail-list {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.egg-detail-list div {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.egg-detail-list dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.egg-detail-list dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.add-egg-area,
+.monster-switcher {
+  margin: 0 16px 12px;
+  text-align: center;
+}
+
+.monster-switcher {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.monster-switcher button {
+  min-width: 48px;
+  border-radius: 999px;
+}
+
+.monster-switcher span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.home-buttons .disabled-link {
+  display: block;
+  padding: 16px;
+  background-color: rgba(255,255,255,.05);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  text-align: center;
+  font-size: 18px;
+  color: var(--muted);
+  opacity: .58;
+}
+
+.observe-egg-summary {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background-color: var(--panel);
+}
+
+.observe-egg-summary p {
+  margin-top: 0;
+  padding: 0;
+}

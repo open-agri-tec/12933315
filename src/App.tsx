@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import FeedPage from './pages/FeedPage';
 import ObservePage from './pages/ObservePage';
 import LogPage from './pages/LogPage';
+import EggCreatePage from './pages/EggCreatePage';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
 import { FarmProvider } from './context/FarmContext';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
           <Header />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/egg/new" element={<EggCreatePage />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/observe" element={<ObservePage />} />
             {/* 記録ページは複数件のログを扱うため複数形に */}

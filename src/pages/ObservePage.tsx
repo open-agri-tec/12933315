@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useFarm, AXIS } from '../context/FarmContext';
 
 /**
@@ -6,14 +7,29 @@ import { useFarm, AXIS } from '../context/FarmContext';
  * モンスターの成長段階や性質を可視化します。
  */
 const ObservePage: React.FC = () => {
-  const { state } = useFarm();
-  const { exp, stats, tastes } = state;
+  const { activeMonster } = useFarm();
+
+  if (!activeMonster) {
+    return (
+      <div className="page observe-page">
+        <h1>観察</h1>
+        <div className="notice-card">
+          <p>先にタマゴを作ってください。</p>
+          <Link className="egg-create-link" to="/egg/new">タマゴの情報を入力する</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { exp, stats, tastes } = activeMonster;
 
   // 成長段階判定
-  let stage = '卵期';
-  if (exp >= 90) stage = 'コンバート準備';
-  else if (exp >= 48) stage = '成長体';
-  else if (exp >= 18) stage = '幼体';
+  let stage = activeMonster.lifeStage === 'egg' ? 'タマゴ' : '卵期';
+  if (activeMonster.lifeStage !== 'egg') {
+    if (exp >= 90) stage = 'コンバート準備';
+    else if (exp >= 48) stage = '成長体';
+    else if (exp >= 18) stage = '幼体';
+  }
 
   // 最大の軸を求める
   const entries = Object.entries(stats);
@@ -41,9 +57,23 @@ const ObservePage: React.FC = () => {
       <h1>観察</h1>
       <div style={{ padding: '0 16px' }}>
         <p>
-          <strong>{stage}</strong> / 経験値 {exp}
+          成長段階：<strong>{stage}</strong> / 経験値 {exp}
         </p>
-        <p>{nature}</p>
+        {activeMonster.lifeStage === 'egg' ? (
+          <div className="observe-egg-summary">
+            <p>まだ孵化していない。入力された栽培情報を内部にためている。</p>
+            <dl className="egg-detail-list">
+              <div><dt>タマゴ名</dt><dd>{activeMonster.name}</dd></div>
+              <div><dt>作物</dt><dd>{activeMonster.crop}</dd></div>
+              <div><dt>品種</dt><dd>{activeMonster.variety}</dd></div>
+              <div><dt>ほ場番地・区画名</dt><dd>{activeMonster.fieldAddress}</dd></div>
+              <div><dt>作型・栽培方式</dt><dd>{activeMonster.cultivationType}</dd></div>
+              <div><dt>経験値</dt><dd>{exp}</dd></div>
+            </dl>
+          </div>
+        ) : (
+          <p>{nature}</p>
+        )}
         <p>現在反応しやすいタグ：{tastes.join('・')}</p>
         <div id="meters">
           {AXIS.map((axis) => {
