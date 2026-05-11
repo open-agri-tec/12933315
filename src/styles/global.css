@@ -10,6 +10,7 @@
   --muted: #9fb0c4;
   --accent: #88d8c0;
   --accent2: #f2c879;
+  --bottom-nav-space: calc(128px + env(safe-area-inset-bottom));
 }
 
 body {
@@ -24,7 +25,11 @@ body {
 }
 
 .app-container {
-  padding-bottom: 70px; /* ナビゲーションのスペース確保 */
+  padding-bottom: var(--bottom-nav-space); /* ナビゲーションのスペース確保 */
+}
+
+.page {
+  padding-bottom: var(--bottom-nav-space);
 }
 
 h1 {
@@ -522,7 +527,7 @@ textarea {
 
 /* 記録画面: code.htmlのカード感を既存テーマに合わせて再構成 */
 .log-page {
-  padding-bottom: 104px;
+  padding-bottom: var(--bottom-nav-space);
 }
 
 .log-summary {

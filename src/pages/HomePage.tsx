@@ -11,6 +11,7 @@ const HomePage: React.FC = () => {
   const touchStartX = useRef<number | null>(null);
   const foods = activeMonster?.foods.filter(f => !f.fed) || [];
   const hasMonster = state.monsters.length > 0;
+  const activeIndex = activeMonster ? state.monsters.findIndex(monster => monster.id === activeMonster.id) : -1;
   const canSwitch = state.monsters.length >= 2;
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -36,7 +37,7 @@ const HomePage: React.FC = () => {
       {canSwitch && (
         <div className="monster-switcher" aria-label="タマゴ切り替え">
           <button onClick={() => switchActiveMonster(-1)} aria-label="前のタマゴへ">←</button>
-          <span>{state.monsters.findIndex(monster => monster.id === state.activeMonsterId) + 1} / {state.monsters.length}</span>
+          <span>{Math.max(0, activeIndex) + 1} / {state.monsters.length}</span>
           <button onClick={() => switchActiveMonster(1)} aria-label="次のタマゴへ">→</button>
         </div>
       )}
