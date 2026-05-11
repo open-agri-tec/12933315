@@ -519,3 +519,207 @@ textarea {
   margin-top: 0;
   padding: 0;
 }
+
+/* 記録画面: code.htmlのカード感を既存テーマに合わせて再構成 */
+.log-page {
+  padding-bottom: 104px;
+}
+
+.log-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 16px;
+  margin-bottom: 18px;
+}
+
+.summary-card {
+  min-width: 0;
+  padding: 12px 8px;
+  border: 1px solid rgba(136, 216, 192, 0.2);
+  border-radius: 16px;
+  background:
+    linear-gradient(160deg, rgba(16, 27, 42, 0.95), rgba(20, 38, 58, 0.88)),
+    var(--panel);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.summary-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.summary-card strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--accent2);
+  font-size: clamp(22px, 8vw, 32px);
+  line-height: 1;
+}
+
+.recent-logs {
+  padding: 0 16px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.section-heading span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty-log-card {
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background-color: var(--panel);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.log-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025)),
+    var(--panel);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.16);
+}
+
+.log-entry-給餌 {
+  border-color: rgba(242, 200, 121, 0.36);
+}
+
+.log-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.log-time {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.log-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.log-title-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.log-type-badge {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background-color: rgba(136, 216, 192, 0.16);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.log-memo {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.log-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.log-tags span {
+  padding: 4px 8px;
+  border: 1px solid rgba(136, 216, 192, 0.26);
+  border-radius: 999px;
+  background-color: rgba(136, 216, 192, 0.09);
+  color: #b9f1e2;
+  font-size: 11px;
+}
+
+.reaction-panel {
+  flex: 0 0 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border: 1px solid rgba(242, 200, 121, 0.26);
+  border-radius: 14px;
+  background-color: rgba(242, 200, 121, 0.1);
+  color: var(--accent2);
+  text-align: center;
+}
+
+.reaction-panel strong {
+  font-size: 13px;
+}
+
+.reaction-panel span:not(.reaction-emoji) {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.reaction-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.log-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 16px;
+  margin-top: 22px;
+}
+
+.log-actions button {
+  width: 100%;
+  min-height: 46px;
+  font-weight: 700;
+}
+
+@media (max-width: 380px) {
+  .log-entry {
+    flex-direction: column;
+  }
+
+  .reaction-panel {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}
