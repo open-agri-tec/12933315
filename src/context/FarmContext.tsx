@@ -63,6 +63,11 @@ export interface LogEntry {
   at: string;
   text: string;
   memo?: string;
+  reaction?: '大好物' | '普通' | '苦手';
+  score?: number;
+  expGain?: number;
+  tags?: string[];
+  foodName?: string;
 }
 
 export interface Stats {
@@ -355,7 +360,9 @@ export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }
           type: '生成',
           at: newFood.createdAt,
           text: `${newFood.name} / ${newFood.tags.join('・')}`,
-          memo
+          memo,
+          tags: newFood.tags,
+          foodName: newFood.name
         },
         ...monster.logs
       ]
@@ -369,7 +376,9 @@ export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }
       const tasteHit = food.tags.filter(t => monster.tastes.includes(t)).length;
       const repeated = food.tags.filter(t => monster.lastTags.includes(t)).length;
       const novelty = food.tags.filter(t => !monster.lastTags.includes(t)).length;
-      let score = tasteHit * 2 + novelty - repeated;
+      const score = tasteHit * 2 + novelty - repeated;
+      const reaction = score >= 4 ? "大好物" : score <= 0 ? "苦手" : "普通";
+      const expGain = Math.max(1, score + 2);
       // update stats
       const newStats: Stats = { ...monster.stats };
       food.tags.forEach(tag => {
@@ -381,8 +390,13 @@ export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }
         {
           type: "給餌",
           at: new Date().toISOString(),
-          text: `${score >= 4 ? "大好物" : score <= 0 ? "苦手" : "普通"}：${food.name}`,
-          memo: `${score >= 4 ? "強く反応した。これは好きな情報らしい。" : score <= 0 ? "少し嫌がった。同じ傾向に飽きている。" : "もぐもぐ……情報を取り込んだ。"} / タグ：${food.tags.join("・")}`
+          text: `${reaction}：${food.name}`,
+          memo: `${score >= 4 ? "強く反応した。これは好きな情報らしい。" : score <= 0 ? "少し嫌がった。同じ傾向に飽きている。" : "もぐもぐ……情報を取り込んだ。"} / タグ：${food.tags.join("・")}`,
+          reaction,
+          score,
+          expGain,
+          tags: food.tags,
+          foodName: food.name
         },
         ...monster.logs
       ];
@@ -390,7 +404,7 @@ export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }
         ...monster,
         foods: monster.foods.map(f => (f.id === id ? { ...f, fed: true } : f)),
         logs: newLogs,
-        exp: monster.exp + Math.max(1, score + 2),
+        exp: monster.exp + expGain,
         lastTags: food.tags.slice(),
         stats: newStats
       };
