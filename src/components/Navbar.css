@@ -9,6 +9,7 @@
   justify-content: space-around;
   background-color: var(--panel);
   border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
   z-index: 100;
 }
 

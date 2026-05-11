@@ -232,7 +232,9 @@ function loadState(): AppState {
     const data = JSON.parse(saved) as Partial<AppState> & Record<string, unknown>;
 
     if (Array.isArray(data.monsters)) {
-      const monsters = data.monsters.map((monster, index) => normalizeMonster(monster, index));
+      const monsters = data.monsters
+        .filter((monster): monster is Partial<Monster> => Boolean(monster) && typeof monster === 'object')
+        .map((monster, index) => normalizeMonster(monster, index));
       const activeMonsterId = monsters.some(m => m.id === data.activeMonsterId)
         ? data.activeMonsterId as string
         : monsters[0]?.id || null;
@@ -289,11 +291,26 @@ function foodName(tags: string[], memo: string): string {
   return `${base}のエサ${words ? "：" + words : ""}`;
 }
 
+function resolveActiveMonsterId(state: AppState): string | null {
+  if (state.monsters.length === 0) return null;
+  return state.monsters.some(monster => monster.id === state.activeMonsterId)
+    ? state.activeMonsterId
+    : state.monsters[0].id;
+}
+
 export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [state, setState] = useState<AppState>(loadState);
 
   const activeMonster = useMemo(() => {
-    return state.monsters.find(monster => monster.id === state.activeMonsterId) || null;
+    const activeMonsterId = resolveActiveMonsterId(state);
+    return state.monsters.find(monster => monster.id === activeMonsterId) || null;
+  }, [state]);
+
+  useEffect(() => {
+    setState(prev => {
+      const activeMonsterId = resolveActiveMonsterId(prev);
+      return prev.activeMonsterId === activeMonsterId ? prev : { ...prev, activeMonsterId };
+    });
   }, [state.activeMonsterId, state.monsters]);
 
   // 保存用副作用
@@ -303,11 +320,13 @@ export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const updateActiveMonster = (updater: (monster: Monster) => Monster) => {
     setState(prev => {
-      if (!prev.activeMonsterId) return prev;
+      const activeMonsterId = resolveActiveMonsterId(prev);
+      if (!activeMonsterId) return prev;
       return {
         ...prev,
+        activeMonsterId,
         monsters: prev.monsters.map(monster => (
-          monster.id === prev.activeMonsterId ? updater(monster) : monster
+          monster.id === activeMonsterId ? updater(monster) : monster
         ))
       };
     });
