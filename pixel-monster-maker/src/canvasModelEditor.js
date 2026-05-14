@@ -79,38 +79,56 @@ export function drawSkeletonBase(ctx, skeleton, selectedKey) {
 }
 
 export function drawSkeletonLabels(ctx, skeleton, selectedKey, options = {}) {
-  const { showLabels = true, width = 256, height = 256, scale = 4 } = options;
+  const { labelMode = 'selected', showLabels = true, width = 320, height = 320, scale = 5, preserveExisting = false } = options;
   ctx.save();
-  ctx.clearRect(0, 0, width, height);
-  ctx.font = '12px monospace';
+  if (!preserveExisting) ctx.clearRect(0, 0, width, height);
+  ctx.font = '14px monospace';
   ctx.textBaseline = 'top';
 
-  if (!showLabels) {
+  if (!showLabels || labelMode === 'none') {
     ctx.restore();
     return;
   }
 
-  if (selectedKey) drawLabel(ctx, `選択: ${selectedKey}`, 8, 8, width, height, '#ffdf6e');
-  drawLabel(ctx, 'Drag points / 64×64', 8, height - 23, width, height, '#d9f7ff');
+  const placed = [];
+  if (selectedKey) drawLabel(ctx, `選択: ${selectedKey}`, 8, 8, width, height, '#ffdf6e', placed);
+  drawLabel(ctx, 'Drag bones / select blank area', 8, height - 26, width, height, '#eaffff', placed);
 
-  for (const [key, point] of Object.entries(skeleton)) {
-    drawLabel(ctx, key, point.x * scale + 8, point.y * scale - 16, width, height, key === selectedKey ? '#ffdf6e' : '#d9f7ff');
+  const entries = labelMode === 'selected' && selectedKey && skeleton[selectedKey]
+    ? [[selectedKey, skeleton[selectedKey]]]
+    : Object.entries(skeleton);
+
+  for (const [key, point] of entries) {
+    drawLabel(ctx, key, point.x * scale + 10, point.y * scale - 18, width, height, key === selectedKey ? '#ffdf6e' : '#eaffff', placed);
   }
   ctx.restore();
 }
 
-function drawLabel(ctx, text, x, y, width, height, color) {
+function drawLabel(ctx, text, x, y, width, height, color, placed = []) {
   const paddingX = 4;
-  const paddingY = 2;
+  const paddingY = 4;
   const metrics = ctx.measureText(text);
   const labelWidth = Math.ceil(metrics.width) + paddingX * 2;
-  const labelHeight = 16;
-  const px = Math.max(0, Math.min(width - labelWidth, Math.round(x)));
-  const py = Math.max(0, Math.min(height - labelHeight, Math.round(y)));
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  const labelHeight = 22;
+  let px = Math.max(0, Math.min(width - labelWidth, Math.round(x)));
+  let py = Math.max(0, Math.min(height - labelHeight, Math.round(y)));
+  let guard = 0;
+  while (placed.some((box) => intersects({ x: px, y: py, w: labelWidth, h: labelHeight }, box)) && guard < 10) {
+    py = Math.min(height - labelHeight, py + labelHeight + 3);
+    guard += 1;
+  }
+  const box = { x: px, y: py, w: labelWidth, h: labelHeight };
+  placed.push(box);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
   ctx.fillRect(px, py, labelWidth, labelHeight);
+  ctx.strokeStyle = 'rgba(127, 219, 255, 0.35)';
+  ctx.strokeRect(px + 0.5, py + 0.5, labelWidth - 1, labelHeight - 1);
   ctx.fillStyle = color;
   ctx.fillText(text, px + paddingX, py + paddingY);
+}
+
+function intersects(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
 function buildRoundParts(s, profile) {

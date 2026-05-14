@@ -241,3 +241,108 @@ summary { cursor: pointer; font-weight: 800; color: #7fdbff; margin-bottom: 10px
     grid-template-columns: 1fr;
   }
 }
+
+/* Production-oriented Pixel Monster Maker layout */
+.maker-header {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(240px, .9fr) minmax(320px, 1.1fr) minmax(240px, .8fr);
+  gap: 16px;
+  align-items: start;
+}
+.top-panel { padding: 14px; }
+.top-panel h2 { font-size: .95rem; }
+.compact-profile { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.export-actions { margin-top: 10px; }
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(360px, 480px);
+  gap: 16px;
+  align-items: start;
+  padding: 16px clamp(16px, 4vw, 48px) 24px;
+}
+.canvas-column { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.tools-column { align-content: start; }
+
+.canvas-stack,
+.skeleton-stack {
+  width: 320px;
+  height: 320px;
+}
+canvas {
+  width: 320px;
+  height: 320px;
+}
+.selectable-stack { position: relative; }
+.selectable-stack canvas { grid-area: 1 / 1; }
+.ui-overlay,
+#skeletonOverlayCanvas,
+#pixelSelectionCanvas {
+  position: absolute;
+  inset: 0;
+  width: 320px;
+  height: 320px;
+  background: transparent;
+  image-rendering: auto;
+  z-index: 3;
+}
+#skeletonOverlayCanvas { pointer-events: none; }
+#pixelSelectionCanvas { pointer-events: auto; }
+#skeletonCanvas { z-index: 1; }
+#pixelCanvas { z-index: 1; }
+#renderCanvas { width: 320px; height: 320px; }
+
+.inline-options {
+  justify-self: stretch;
+  display: grid;
+  grid-template-columns: minmax(180px, 260px);
+  margin-top: 10px;
+}
+.selection-status,
+.part-meta {
+  margin: 8px 0 10px;
+  color: #d9f7ff;
+  font: 12px/1.5 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+.parts-order-list {
+  max-height: 140px;
+  overflow: auto;
+  margin: 8px 0 0;
+  padding-left: 22px;
+  color: #d8e8ff;
+  font: 12px/1.55 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+.parts-panel { max-height: 78vh; overflow: auto; }
+.parts-panel details:not(.order-details) { margin-bottom: 8px; }
+.parts-panel details:not([open]) { padding-bottom: 0; }
+.parts-panel summary { position: sticky; top: 0; z-index: 1; background: #0a111d; padding: 2px 0 8px; }
+.json-panel {
+  margin: 0 clamp(16px, 4vw, 48px) 40px;
+}
+.json-panel details { margin: 0; }
+.json-preview {
+  min-height: 180px;
+  max-height: 42vh;
+}
+
+@media (max-width: 1280px) {
+  .maker-header { grid-template-columns: 1fr 1fr; }
+  .workspace-grid { grid-template-columns: 1fr; }
+  .canvas-column { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .maker-header { grid-template-columns: 1fr; padding-inline: 12px; }
+  .workspace-grid { padding-inline: 12px; }
+  .canvas-stack,
+  .skeleton-stack,
+  canvas,
+  .ui-overlay,
+  #skeletonOverlayCanvas,
+  #pixelSelectionCanvas,
+  #renderCanvas {
+    width: 256px;
+    height: 256px;
+  }
+  .compact-profile { grid-template-columns: 1fr; }
+}
