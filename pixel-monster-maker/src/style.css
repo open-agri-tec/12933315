@@ -153,3 +153,91 @@ summary { cursor: pointer; font-weight: 800; color: #7fdbff; margin-bottom: 10px
   .form-grid, .part-grid { grid-template-columns: 1fr; }
   .panel { padding: 14px; }
 }
+
+.skeleton-stack {
+  width: 256px;
+  height: 256px;
+}
+.skeleton-stack canvas {
+  grid-area: 1 / 1;
+}
+#skeletonOverlayCanvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+  image-rendering: auto;
+}
+.canvas-option {
+  justify-self: stretch;
+  margin-top: 10px;
+}
+.bone-panel {
+  justify-items: stretch;
+}
+.bone-actions {
+  grid-template-columns: 1fr 1fr;
+  margin: 12px 0 8px;
+}
+.danger-button {
+  background: linear-gradient(135deg, #ff8a8a, #ffdf6e);
+}
+.selected-bone {
+  justify-self: stretch;
+  margin: 6px 0 10px;
+  color: #b9c6d8;
+}
+.selected-bone strong {
+  color: #ffdf6e;
+}
+.bone-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.bone-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 64px 64px 56px 56px;
+  gap: 6px;
+  align-items: end;
+  border: 1px solid #2a3a51;
+  border-radius: 12px;
+  background: #0a111d;
+  padding: 8px;
+}
+.bone-row.selected {
+  border-color: #ffdf6e;
+  box-shadow: 0 0 0 2px rgba(255, 223, 110, .14);
+}
+.bone-name {
+  align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  color: #d9f7ff;
+  font: 12px/1.3 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compact-field {
+  gap: 2px;
+  font-size: .72rem;
+}
+.compact-field input {
+  padding: 5px 6px;
+}
+.compact-button,
+.bone-row button {
+  min-height: 32px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  font-size: .78rem;
+}
+
+@media (max-width: 760px) {
+  .bone-actions,
+  .bone-row {
+    grid-template-columns: 1fr;
+  }
+}

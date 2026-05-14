@@ -13,6 +13,21 @@ const SKELETON_POINTS = {
   }
 };
 
+const OPTIONAL_PART_BASES = new Set([
+  'wingLeft', 'wingRight',
+  'legFrontLeft', 'legFrontRight', 'legBackLeft', 'legBackRight',
+  'horn', 'tail',
+  'antennaLeft', 'antennaRight',
+  'earLeft', 'earRight'
+]);
+
+export const PARTS_ORDER_TEMPLATE = [
+  'tail', 'wingLeft', 'wingRight', 'legBackLeft', 'legBackRight',
+  'legLeft', 'legRight', 'body', 'belly',
+  'legFrontLeft', 'legFrontRight', 'armLeft', 'armRight', 'eyeLeft', 'eyeRight', 'nose',
+  'horn', 'antennaLeft', 'antennaRight', 'earLeft', 'earRight'
+];
+
 export function createDefaultSkeleton(skeletonType, size = 64) {
   const template = SKELETON_POINTS[skeletonType] || SKELETON_POINTS.round;
   const scale = size / 64;
@@ -23,20 +38,32 @@ export function createDefaultSkeleton(skeletonType, size = 64) {
 
 export function buildPartsFromSkeleton(skeleton, profile) {
   const type = profile.skeletonType;
-  if (type === 'line') return buildLineParts(skeleton, profile);
-  if (type === 'cluster') return buildClusterParts(skeleton, profile);
-  return buildRoundParts(skeleton, profile);
+  const baseParts = type === 'line' ? buildLineParts(skeleton, profile) : type === 'cluster' ? buildClusterParts(skeleton, profile) : buildRoundParts(skeleton, profile);
+  return { ...baseParts, ...buildOptionalParts(skeleton) };
 }
 
-export function drawSkeletonOverlay(ctx, skeleton, selectedKey) {
+export function buildPartsOrder(parts) {
+  const keys = Object.keys(parts || {});
+  const ordered = [];
+  for (const templateKey of PARTS_ORDER_TEMPLATE) {
+    for (const key of keys) {
+      if (key === templateKey || baseBoneName(key) === templateKey) addUnique(ordered, key);
+    }
+  }
+  for (const key of keys) addUnique(ordered, key);
+  return ordered;
+}
+
+export function drawSkeletonBase(ctx, skeleton, selectedKey) {
   ctx.save();
-  ctx.font = '4px monospace';
-  ctx.textBaseline = 'top';
   ctx.lineWidth = 1;
   const entries = Object.entries(skeleton);
   ctx.strokeStyle = 'rgba(127, 219, 255, 0.7)';
   ctx.beginPath();
-  for (const [, point] of entries) ctx.lineTo(point.x, point.y);
+  entries.forEach(([, point], index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.lineTo(point.x, point.y);
+  });
   ctx.stroke();
 
   for (const [key, point] of entries) {
@@ -47,54 +74,151 @@ export function drawSkeletonOverlay(ctx, skeleton, selectedKey) {
     ctx.arc(point.x, point.y, selected ? 2.4 : 1.8, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = selected ? '#ffdf6e' : '#ffffff';
-    ctx.fillText(key, Math.min(point.x + 3, 48), Math.max(0, point.y - 4));
   }
   ctx.restore();
 }
 
+export function drawSkeletonLabels(ctx, skeleton, selectedKey, options = {}) {
+  const { showLabels = true, width = 256, height = 256, scale = 4 } = options;
+  ctx.save();
+  ctx.clearRect(0, 0, width, height);
+  ctx.font = '12px monospace';
+  ctx.textBaseline = 'top';
+
+  if (!showLabels) {
+    ctx.restore();
+    return;
+  }
+
+  if (selectedKey) drawLabel(ctx, `選択: ${selectedKey}`, 8, 8, width, height, '#ffdf6e');
+  drawLabel(ctx, 'Drag points / 64×64', 8, height - 23, width, height, '#d9f7ff');
+
+  for (const [key, point] of Object.entries(skeleton)) {
+    drawLabel(ctx, key, point.x * scale + 8, point.y * scale - 16, width, height, key === selectedKey ? '#ffdf6e' : '#d9f7ff');
+  }
+  ctx.restore();
+}
+
+function drawLabel(ctx, text, x, y, width, height, color) {
+  const paddingX = 4;
+  const paddingY = 2;
+  const metrics = ctx.measureText(text);
+  const labelWidth = Math.ceil(metrics.width) + paddingX * 2;
+  const labelHeight = 16;
+  const px = Math.max(0, Math.min(width - labelWidth, Math.round(x)));
+  const py = Math.max(0, Math.min(height - labelHeight, Math.round(y)));
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fillRect(px, py, labelWidth, labelHeight);
+  ctx.fillStyle = color;
+  ctx.fillText(text, px + paddingX, py + paddingY);
+}
+
 function buildRoundParts(s, profile) {
-  const body = s.body || s.center;
-  const center = s.center || body;
+  const center = s.center || s.body || { x: 32, y: 32 };
+  const body = s.body || center;
+  const eyeLeft = s.eyeLeft || offset(center, -7, -7);
+  const eyeRight = s.eyeRight || offset(center, 7, -7);
+  const nose = s.nose || offset(center, 0, -1);
+  const armLeft = s.armLeft || offset(center, -18, 3);
+  const armRight = s.armRight || offset(center, 18, 3);
+  const legLeft = s.legLeft || offset(center, -8, 23);
+  const legRight = s.legRight || offset(center, 8, 23);
   return {
     body: ellipse(body.x, body.y, 18, 20, 'body'),
     belly: { ...ellipse(center.x, center.y + 8, 10, 8, 'belly'), enabled: Boolean(profile.belly) },
-    eyeLeft: circle(s.eyeLeft.x, s.eyeLeft.y, profile.eyeType === 'small' ? 2 : 3, 'eye'),
-    eyeRight: circle(s.eyeRight.x, s.eyeRight.y, profile.eyeType === 'small' ? 2 : 3, 'eye'),
-    nose: circle(s.nose.x, s.nose.y, 2, 'nose'),
-    armLeft: line(center.x - 12, center.y + 2, s.armLeft.x, s.armLeft.y, 'limb'),
-    armRight: line(center.x + 12, center.y + 2, s.armRight.x, s.armRight.y, 'limb'),
-    legLeft: line(center.x - 6, center.y + 17, s.legLeft.x, s.legLeft.y, 'limb'),
-    legRight: line(center.x + 6, center.y + 17, s.legRight.x, s.legRight.y, 'limb')
+    eyeLeft: circle(eyeLeft.x, eyeLeft.y, profile.eyeType === 'small' ? 2 : 3, 'eye'),
+    eyeRight: circle(eyeRight.x, eyeRight.y, profile.eyeType === 'small' ? 2 : 3, 'eye'),
+    nose: circle(nose.x, nose.y, 2, 'nose'),
+    armLeft: line(center.x - 12, center.y + 2, armLeft.x, armLeft.y, 'limb'),
+    armRight: line(center.x + 12, center.y + 2, armRight.x, armRight.y, 'limb'),
+    legLeft: line(center.x - 6, center.y + 17, legLeft.x, legLeft.y, 'limb'),
+    legRight: line(center.x + 6, center.y + 17, legRight.x, legRight.y, 'limb')
   };
 }
 
 function buildLineParts(s, profile) {
+  const center = s.center || { x: 32, y: 31 };
+  const top = s.top || offset(center, 0, -23);
+  const bottom = s.bottom || offset(center, 0, 21);
+  const eyeLeft = s.eyeLeft || offset(center, -5, -10);
+  const eyeRight = s.eyeRight || offset(center, 5, -10);
+  const branchLeft = s.branchLeft || offset(center, -15, -3);
+  const branchRight = s.branchRight || offset(center, 15, -3);
+  const footLeft = s.footLeft || offset(bottom, -8, 6);
+  const footRight = s.footRight || offset(bottom, 8, 6);
   return {
-    body: line(s.top.x, s.top.y, s.bottom.x, s.bottom.y, 'body'),
-    belly: { ...ellipse(s.center.x, s.center.y + 7, 7, 6, 'belly'), enabled: Boolean(profile.belly) },
-    eyeLeft: circle(s.eyeLeft.x, s.eyeLeft.y, 2, 'eye'),
-    eyeRight: circle(s.eyeRight.x, s.eyeRight.y, 2, 'eye'),
-    nose: circle(s.center.x, s.center.y - 3, 1.5, 'nose'),
-    armLeft: line(s.center.x, s.center.y, s.branchLeft.x, s.branchLeft.y, 'limb'),
-    armRight: line(s.center.x, s.center.y, s.branchRight.x, s.branchRight.y, 'limb'),
-    legLeft: line(s.bottom.x, s.bottom.y, s.footLeft.x, s.footLeft.y, 'limb'),
-    legRight: line(s.bottom.x, s.bottom.y, s.footRight.x, s.footRight.y, 'limb')
+    body: line(top.x, top.y, bottom.x, bottom.y, 'body'),
+    belly: { ...ellipse(center.x, center.y + 7, 7, 6, 'belly'), enabled: Boolean(profile.belly) },
+    eyeLeft: circle(eyeLeft.x, eyeLeft.y, 2, 'eye'),
+    eyeRight: circle(eyeRight.x, eyeRight.y, 2, 'eye'),
+    nose: circle(center.x, center.y - 3, 1.5, 'nose'),
+    armLeft: line(center.x, center.y, branchLeft.x, branchLeft.y, 'limb'),
+    armRight: line(center.x, center.y, branchRight.x, branchRight.y, 'limb'),
+    legLeft: line(bottom.x, bottom.y, footLeft.x, footLeft.y, 'limb'),
+    legRight: line(bottom.x, bottom.y, footRight.x, footRight.y, 'limb')
   };
 }
 
 function buildClusterParts(s, profile) {
+  const center = s.center || { x: 32, y: 32 };
+  const budBottom = s.budBottom || offset(center, 0, 14);
+  const eyeLeft = s.eyeLeft || offset(center, -6, -3);
+  const eyeRight = s.eyeRight || offset(center, 6, -3);
+  const budLeft = s.budLeft || offset(center, -14, -1);
+  const budRight = s.budRight || offset(center, 14, -1);
+  const stem = s.stem || offset(center, 0, 21);
+  const footLeft = s.footLeft || offset(stem, -7, 6);
+  const footRight = s.footRight || offset(stem, 7, 6);
   return {
-    body: ellipse(s.center.x, s.center.y, 16, 14, 'body'),
-    belly: { ...ellipse(s.budBottom.x, s.budBottom.y, 9, 7, 'belly'), enabled: Boolean(profile.belly) },
-    eyeLeft: circle(s.eyeLeft.x, s.eyeLeft.y, 2.5, 'eye'),
-    eyeRight: circle(s.eyeRight.x, s.eyeRight.y, 2.5, 'eye'),
-    nose: circle(s.center.x, s.center.y + 2, 1.5, 'nose'),
-    armLeft: ellipse(s.budLeft.x, s.budLeft.y, 8, 10, 'limb'),
-    armRight: ellipse(s.budRight.x, s.budRight.y, 8, 10, 'limb'),
-    legLeft: line(s.stem.x, s.stem.y, s.footLeft.x, s.footLeft.y, 'limb'),
-    legRight: line(s.stem.x, s.stem.y, s.footRight.x, s.footRight.y, 'limb')
+    body: ellipse(center.x, center.y, 16, 14, 'body'),
+    belly: { ...ellipse(budBottom.x, budBottom.y, 9, 7, 'belly'), enabled: Boolean(profile.belly) },
+    eyeLeft: circle(eyeLeft.x, eyeLeft.y, 2.5, 'eye'),
+    eyeRight: circle(eyeRight.x, eyeRight.y, 2.5, 'eye'),
+    nose: circle(center.x, center.y + 2, 1.5, 'nose'),
+    armLeft: ellipse(budLeft.x, budLeft.y, 8, 10, 'limb'),
+    armRight: ellipse(budRight.x, budRight.y, 8, 10, 'limb'),
+    legLeft: line(stem.x, stem.y, footLeft.x, footLeft.y, 'limb'),
+    legRight: line(stem.x, stem.y, footRight.x, footRight.y, 'limb')
   };
+}
+
+function buildOptionalParts(skeleton) {
+  const parts = {};
+  const center = anchorPoint(skeleton, ['center', 'body', 'bottom', 'budBottom']) || { x: 32, y: 32 };
+  const head = anchorPoint(skeleton, ['head', 'top', 'budTop', 'body', 'center']) || center;
+  const body = anchorPoint(skeleton, ['body', 'center', 'bottom', 'budBottom']) || center;
+  for (const [key, point] of Object.entries(skeleton)) {
+    const base = baseBoneName(key);
+    if (!OPTIONAL_PART_BASES.has(base)) continue;
+    if (base.startsWith('wing')) parts[key] = ellipse(point.x, point.y, 9, 13, 'wing');
+    else if (base.startsWith('legFront')) parts[key] = line(center.x + sideOffset(base, 5), center.y + 12, point.x, point.y, 'limb');
+    else if (base.startsWith('legBack')) parts[key] = line(center.x + sideOffset(base, 8), center.y + 15, point.x, point.y, 'limb');
+    else if (base === 'horn') parts[key] = line(head.x, head.y - 8, point.x, point.y, 'accent', 2);
+    else if (base === 'tail') parts[key] = line(body.x, body.y + 7, point.x, point.y, 'limb');
+    else if (base.startsWith('antenna')) parts[key] = line(head.x + sideOffset(base, 4), head.y - 7, point.x, point.y, 'accent', 2);
+    else if (base.startsWith('ear')) parts[key] = ellipse(point.x, point.y, 5, 7, 'body');
+  }
+  return parts;
+}
+
+function offset(point, dx, dy) {
+  return { x: point.x + dx, y: point.y + dy };
+}
+
+function anchorPoint(skeleton, keys) {
+  return keys.map((key) => skeleton[key]).find(Boolean);
+}
+
+function sideOffset(key, amount) {
+  return key.includes('Left') ? -amount : amount;
+}
+
+function baseBoneName(key) {
+  return key.replace(/\d+$/, '');
+}
+
+function addUnique(items, key) {
+  if (!items.includes(key)) items.push(key);
 }
 
 function ellipse(x, y, rx, ry, colorRole) {
@@ -103,6 +227,6 @@ function ellipse(x, y, rx, ry, colorRole) {
 function circle(x, y, r, colorRole) {
   return { enabled: true, type: 'circle', x, y, r, colorRole };
 }
-function line(x1, y1, x2, y2, colorRole) {
-  return { enabled: true, type: 'line', x1, y1, x2, y2, colorRole };
+function line(x1, y1, x2, y2, colorRole, lineWidth = 3) {
+  return { enabled: true, type: 'line', x1, y1, x2, y2, colorRole, lineWidth };
 }

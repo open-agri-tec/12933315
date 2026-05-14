@@ -1,6 +1,6 @@
 import './style.css';
 import { loadImageFile, pixelizeImage } from './imagePixelizer.js';
-import { createDefaultSkeleton, buildPartsFromSkeleton, drawSkeletonOverlay } from './canvasModelEditor.js';
+import { createDefaultSkeleton, buildPartsFromSkeleton, buildPartsOrder, drawSkeletonBase, drawSkeletonLabels } from './canvasModelEditor.js';
 import { renderMonsterFromParts } from './pixelRenderer.js';
 import { buildMonsterJson, DEFAULT_CANVAS_MODEL } from './monsterSchema.js';
 import { downloadCanvasPng, downloadJson } from './exporter.js';
@@ -18,7 +18,8 @@ const state = {
     belly: true, palette: 'green', pixelSize: 64, seed: 1
   },
   skeleton: createDefaultSkeleton('round', CANVAS_SIZE),
-  parts: {}
+  parts: {},
+  showSkeletonLabels: true
 };
 state.parts = buildPartsFromSkeleton(state.skeleton, state.profile);
 
@@ -70,8 +71,37 @@ app.innerHTML = `
 
       <section class="panel canvases">
         <h2>4. 骨格編集Canvas</h2>
-        <canvas id="skeletonCanvas" width="64" height="64" aria-label="骨格編集Canvas"></canvas>
-        <p class="hint">下絵なしでデフォルト骨格を編集可能。骨格点はマウス・タッチでドラッグできます。</p>
+        <div class="canvas-stack skeleton-stack">
+          <canvas id="skeletonCanvas" width="64" height="64" aria-label="骨格編集Canvas"></canvas>
+          <canvas id="skeletonOverlayCanvas" width="256" height="256" aria-label="骨格ラベル表示レイヤー"></canvas>
+        </div>
+        <label class="check canvas-option"><input id="showSkeletonLabels" type="checkbox" checked> ラベル表示</label>
+        <p class="hint">下絵なしでデフォルト骨格を編集可能。骨格点はマウス・タッチでドラッグできます。点は64×64座標で管理。ラベルは表示用レイヤーで描画しています。</p>
+      </section>
+
+      <section class="panel controls bone-panel">
+        <h2>5. ボーン追加 / 編集</h2>
+        <div class="form-grid">
+          <label>追加するボーン種別<select id="bonePreset">
+            <option value="wingLeft">wingLeft: 左羽</option>
+            <option value="wingRight">wingRight: 右羽</option>
+            <option value="legFrontLeft">legFrontLeft: 左前脚</option>
+            <option value="legFrontRight">legFrontRight: 右前脚</option>
+            <option value="legBackLeft">legBackLeft: 左後脚</option>
+            <option value="legBackRight">legBackRight: 右後脚</option>
+            <option value="horn">horn: 角</option>
+            <option value="tail">tail: 尾</option>
+            <option value="antennaLeft">antennaLeft: 左触角</option>
+            <option value="antennaRight">antennaRight: 右触角</option>
+            <option value="earLeft">earLeft: 左耳</option>
+            <option value="earRight">earRight: 右耳</option>
+            <option value="custom">custom: カスタム</option>
+          </select></label>
+          <label>カスタム名<input id="customBoneName" placeholder="customBone"></label>
+        </div>
+        <div class="button-row bone-actions"><button id="addBone">ボーン追加</button><button id="deleteSelectedBone" class="danger-button">選択中ボーンを削除</button></div>
+        <p class="selected-bone">選択中: <strong id="selectedBoneName">なし</strong></p>
+        <div id="boneList" class="bone-list"></div>
       </section>
 
       <section class="panel canvases">
@@ -82,7 +112,7 @@ app.innerHTML = `
     </div>
 
     <div class="column right-column">
-      <section class="panel parts-panel"><h2>5. 部位編集パネル</h2><div id="partsEditor"></div></section>
+      <section class="panel parts-panel"><h2>6. 部位編集パネル</h2><div id="partsEditor"></div></section>
       <section class="panel json-panel"><h2>8. monster.jsonプレビュー</h2><pre id="jsonPreview" class="json-preview"></pre></section>
     </div>
   </main>
@@ -90,10 +120,15 @@ app.innerHTML = `
 
 const pixelCanvas = document.querySelector('#pixelCanvas');
 const skeletonCanvas = document.querySelector('#skeletonCanvas');
+const skeletonOverlayCanvas = document.querySelector('#skeletonOverlayCanvas');
 const renderCanvas = document.querySelector('#renderCanvas');
 const pixelEmptyHint = document.querySelector('#pixelEmptyHint');
 const partsEditor = document.querySelector('#partsEditor');
 const jsonPreview = document.querySelector('#jsonPreview');
+const bonePreset = document.querySelector('#bonePreset');
+const customBoneName = document.querySelector('#customBoneName');
+const selectedBoneName = document.querySelector('#selectedBoneName');
+const boneList = document.querySelector('#boneList');
 
 wireEvents();
 renderAll(true);
@@ -113,6 +148,9 @@ function wireEvents() {
   document.querySelector('#exportJson').addEventListener('click', () => downloadJson(currentMonster(), `${state.profile.id || 'monster'}.json`));
   document.querySelector('#exportPixel').addEventListener('click', () => downloadCanvasPng(pixelCanvas, state.source.pixelizedPreviewName || 'pixelized-preview.png'));
   document.querySelector('#exportCanvas').addEventListener('click', () => downloadCanvasPng(renderCanvas, `${state.profile.id || 'monster'}-canvas.png`));
+  document.querySelector('#showSkeletonLabels').addEventListener('change', (event) => { state.showSkeletonLabels = event.target.checked; renderAll(); });
+  document.querySelector('#addBone').addEventListener('click', addBone);
+  document.querySelector('#deleteSelectedBone').addEventListener('click', () => deleteBone(state.selectedKey));
   skeletonCanvas.addEventListener('pointerdown', startDrag);
   skeletonCanvas.addEventListener('pointermove', dragPoint);
   skeletonCanvas.addEventListener('pointerup', stopDrag);
@@ -133,7 +171,8 @@ function renderAll(rebuildEditor = false) {
   drawPixelPreview();
   drawSkeleton();
   renderMonsterFromParts(renderCanvas, currentMonster(), state.previewState);
-  if (rebuildEditor) renderPartsEditor();
+  if (rebuildEditor) { renderPartsEditor(); renderBoneList(); }
+  updateSelectedBoneDisplay();
   pixelEmptyHint.hidden = Boolean(state.image);
   jsonPreview.textContent = JSON.stringify(currentMonster(), null, 2);
 }
@@ -154,7 +193,9 @@ function drawSkeleton() {
   else drawEmptyGrid(ctx, 'Skeleton');
   ctx.fillStyle = 'rgba(6, 10, 18, 0.35)';
   ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  drawSkeletonOverlay(ctx, state.skeleton, state.selectedKey);
+  drawSkeletonBase(ctx, state.skeleton, state.selectedKey);
+  const overlayCtx = skeletonOverlayCanvas.getContext('2d');
+  drawSkeletonLabels(overlayCtx, state.skeleton, state.selectedKey, { showLabels: state.showSkeletonLabels, width: 256, height: 256, scale: 4 });
 }
 
 function drawEmptyGrid(ctx, label) {
@@ -170,7 +211,7 @@ function renderPartsEditor() {
     const details = document.createElement('details'); details.open = true;
     details.innerHTML = `<summary>${key}</summary>`;
     const grid = document.createElement('div'); grid.className = 'part-grid';
-    for (const field of ['enabled', 'type', 'x', 'y', 'w', 'h', 'r', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2', 'colorRole']) grid.appendChild(partField(key, part, field));
+    for (const field of ['enabled', 'type', 'x', 'y', 'w', 'h', 'r', 'rx', 'ry', 'x1', 'y1', 'x2', 'y2', 'lineWidth', 'colorRole']) grid.appendChild(partField(key, part, field));
     details.appendChild(grid); partsEditor.appendChild(details);
   }
 }
@@ -216,4 +257,101 @@ function nearestSkeletonPoint(point) {
   return best;
 }
 function clamp(value) { return Math.max(0, Math.min(CANVAS_SIZE, Math.round(value))); }
-function currentMonster() { return buildMonsterJson({ profile: state.profile, skeleton: state.skeleton, parts: state.parts, canvasModel: DEFAULT_CANVAS_MODEL, source: state.source }); }
+
+function addBone() {
+  const preset = bonePreset.value;
+  const requestedName = preset === 'custom' ? customBoneName.value.trim() : preset;
+  const baseName = sanitizeBoneName(requestedName);
+  if (!baseName) return;
+  const key = uniqueBoneName(baseName);
+  const anchor = state.skeleton.center || state.skeleton.body || state.skeleton.bottom || { x: 32, y: 32 };
+  state.skeleton[key] = { x: clamp(anchor.x + 2), y: clamp(anchor.y + 2) };
+  state.selectedKey = key;
+  state.parts = buildPartsFromSkeleton(state.skeleton, state.profile);
+  renderAll(true);
+}
+
+function renderBoneList() {
+  boneList.innerHTML = '';
+  for (const [key, point] of Object.entries(state.skeleton)) {
+    const row = document.createElement('div');
+    row.className = 'bone-row';
+    if (key === state.selectedKey) row.classList.add('selected');
+
+    const name = document.createElement('span');
+    name.className = 'bone-name';
+    name.textContent = key;
+
+    const xInput = boneCoordinateInput(key, 'x', point.x);
+    const yInput = boneCoordinateInput(key, 'y', point.y);
+
+    const selectButton = document.createElement('button');
+    selectButton.type = 'button';
+    selectButton.textContent = '選択';
+    selectButton.addEventListener('click', () => {
+      state.selectedKey = key;
+      renderAll(true);
+    });
+
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.className = 'danger-button compact-button';
+    deleteButton.textContent = '削除';
+    deleteButton.addEventListener('click', () => deleteBone(key));
+
+    row.append(name, xInput, yInput, selectButton, deleteButton);
+    boneList.appendChild(row);
+  }
+}
+
+function boneCoordinateInput(key, axis, value) {
+  const label = document.createElement('label');
+  label.className = 'compact-field';
+  label.textContent = axis;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.min = '0';
+  input.max = String(CANVAS_SIZE);
+  input.step = '1';
+  input.value = value;
+  input.addEventListener('input', () => {
+    const nextValue = input.value === '' ? 0 : clamp(Number(input.value));
+    state.skeleton[key] = { ...state.skeleton[key], [axis]: nextValue };
+    state.parts = buildPartsFromSkeleton(state.skeleton, state.profile);
+    renderAll(false);
+  });
+  input.addEventListener('change', () => renderAll(true));
+  label.appendChild(input);
+  return label;
+}
+
+function deleteBone(key) {
+  if (!key || !state.skeleton[key]) return;
+  if (isBasicBone(key) && !confirm(`基本ボーン「${key}」を削除しますか？`)) return;
+  delete state.skeleton[key];
+  if (state.selectedKey === key) state.selectedKey = null;
+  if (state.draggingKey === key) state.draggingKey = null;
+  state.parts = buildPartsFromSkeleton(state.skeleton, state.profile);
+  renderAll(true);
+}
+
+function updateSelectedBoneDisplay() {
+  selectedBoneName.textContent = state.selectedKey || 'なし';
+}
+
+function sanitizeBoneName(name) {
+  return name.replace(/[^A-Za-z0-9_]/g, '').replace(/^[0-9]+/, '');
+}
+
+function uniqueBoneName(baseName) {
+  if (!state.skeleton[baseName]) return baseName;
+  let index = 2;
+  while (state.skeleton[`${baseName}${index}`]) index += 1;
+  return `${baseName}${index}`;
+}
+
+function isBasicBone(key) {
+  return ['center', 'body', 'head', 'eyeLeft', 'eyeRight'].includes(key);
+}
+
+function currentMonster() { return buildMonsterJson({ profile: state.profile, skeleton: state.skeleton, parts: state.parts, canvasModel: { ...DEFAULT_CANVAS_MODEL, partsOrder: buildPartsOrder(state.parts) }, source: state.source }); }

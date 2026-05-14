@@ -3,7 +3,7 @@ export const DEFAULT_CANVAS_MODEL = {
   canvasWidth: 64,
   canvasHeight: 64,
   displayScale: 4,
-  partsOrder: ['legLeft', 'legRight', 'body', 'belly', 'armLeft', 'armRight', 'eyeLeft', 'eyeRight', 'nose']
+  partsOrder: ['tail', 'wingLeft', 'wingRight', 'legBackLeft', 'legBackRight', 'legLeft', 'legRight', 'body', 'belly', 'legFrontLeft', 'legFrontRight', 'armLeft', 'armRight', 'eyeLeft', 'eyeRight', 'nose', 'horn', 'antennaLeft', 'antennaRight', 'earLeft', 'earRight']
 };
 
 export const DEFAULT_ANIMATIONS = {
