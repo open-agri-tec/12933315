@@ -27,42 +27,71 @@ app.innerHTML = `
   <header class="hero">
     <div><p class="eyebrow">64×64 Canvas Monster JSON Tool</p><h1>Pixel Monster Maker</h1><p>画像を64×64にピクセル化し、骨格・parts・Canvas再描画用 monster.json を生成します。</p></div>
   </header>
-  <main class="layout">
-    <section class="panel controls">
-      <h2>1. 画像読み込み / 64×64設定</h2>
-      <label class="drop-zone"><span>PNG / JPG / WEBPを選択</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
-      <label>色数削減ステップ<select id="colorStep"><option value="16">16</option><option value="32" selected>32</option><option value="64">64</option></select></label>
-      <h2>visualProfile</h2>
-      <div class="form-grid">
-        <label>id<input data-profile="id" value="monster_001"></label>
-        <label>name<input data-profile="name" value="test_monster"></label>
-        <label>skeletonType<select data-profile="skeletonType"><option>round</option><option>line</option><option>cluster</option></select></label>
-        <label>eyeType<select data-profile="eyeType"><option>large</option><option>small</option></select></label>
-        <label>limbType<select data-profile="limbType"><option>short</option><option>long</option></select></label>
-        <label>palette<select data-profile="palette"><option>green</option><option>blue</option><option>red</option><option>purple</option></select></label>
-        <label class="check"><input data-profile="belly" type="checkbox" checked> belly</label>
-      </div>
-      <h2>7. 状態プレビュー</h2>
-      <select id="previewState"><option>idle</option><option>happy</option><option>dislike</option><option>eating</option><option>sleep</option></select>
-      <h2>9. 書き出し</h2>
-      <div class="button-row"><button id="exportJson">monster.json</button><button id="exportPixel">64×64 PNG</button><button id="exportCanvas">Canvas PNG</button></div>
-    </section>
+  <main class="main-grid">
+    <div class="column left-column">
+      <section class="panel controls">
+        <h2>1. 画像読み込み / 64×64設定</h2>
+        <label class="drop-zone"><span>PNG / JPG / WEBPを選択</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp"></label>
+        <label>色数削減ステップ<select id="colorStep"><option value="16">16</option><option value="32" selected>32</option><option value="64">64</option></select></label>
+      </section>
 
-    <section class="panel canvases">
-      <h2>3. ピクセル化プレビューCanvas</h2><canvas id="pixelCanvas" width="64" height="64"></canvas>
-      <h2>4. 骨格編集Canvas</h2><canvas id="skeletonCanvas" width="64" height="64"></canvas>
-      <h2>6. Canvas再描画プレビュー</h2><canvas id="renderCanvas" width="64" height="64"></canvas>
-      <p class="hint">骨格点はマウス・タッチでドラッグできます。内部64×64、表示256×256です。</p>
-    </section>
+      <section class="panel controls">
+        <h2>2. visualProfile</h2>
+        <div class="form-grid">
+          <label>id<input data-profile="id" value="monster_001"></label>
+          <label>name<input data-profile="name" value="test_monster"></label>
+          <label>skeletonType<select data-profile="skeletonType"><option>round</option><option>line</option><option>cluster</option></select></label>
+          <label>eyeType<select data-profile="eyeType"><option>large</option><option>small</option></select></label>
+          <label>limbType<select data-profile="limbType"><option>short</option><option>long</option></select></label>
+          <label>palette<select data-profile="palette"><option>green</option><option>blue</option><option>red</option><option>purple</option></select></label>
+          <label class="check"><input data-profile="belly" type="checkbox" checked> belly</label>
+        </div>
+      </section>
 
-    <section class="panel parts-panel"><h2>5. 部位編集パネル</h2><div id="partsEditor"></div></section>
-    <section class="panel json-panel"><h2>8. monster.jsonプレビュー</h2><pre id="jsonPreview"></pre></section>
+      <section class="panel controls">
+        <h2>7. 状態プレビュー</h2>
+        <select id="previewState"><option>idle</option><option>happy</option><option>dislike</option><option>eating</option><option>sleep</option></select>
+      </section>
+
+      <section class="panel controls">
+        <h2>9. 書き出し</h2>
+        <div class="button-row"><button id="exportJson">monster.json</button><button id="exportPixel">64×64 PNG</button><button id="exportCanvas">Canvas PNG</button></div>
+      </section>
+    </div>
+
+    <div class="column center-column">
+      <section class="panel canvases">
+        <h2>3. ピクセル化プレビューCanvas</h2>
+        <div class="canvas-stack">
+          <canvas id="pixelCanvas" width="64" height="64" aria-label="ピクセル化プレビュー"></canvas>
+          <p id="pixelEmptyHint" class="empty-canvas-message">画像を読み込むと64×64プレビューを表示</p>
+        </div>
+      </section>
+
+      <section class="panel canvases">
+        <h2>4. 骨格編集Canvas</h2>
+        <canvas id="skeletonCanvas" width="64" height="64" aria-label="骨格編集Canvas"></canvas>
+        <p class="hint">下絵なしでデフォルト骨格を編集可能。骨格点はマウス・タッチでドラッグできます。</p>
+      </section>
+
+      <section class="panel canvases">
+        <h2>6. Canvas再描画プレビュー</h2>
+        <canvas id="renderCanvas" width="64" height="64" aria-label="Canvas再描画プレビュー"></canvas>
+        <p class="hint">内部解像度64×64、表示サイズ256×256です。</p>
+      </section>
+    </div>
+
+    <div class="column right-column">
+      <section class="panel parts-panel"><h2>5. 部位編集パネル</h2><div id="partsEditor"></div></section>
+      <section class="panel json-panel"><h2>8. monster.jsonプレビュー</h2><pre id="jsonPreview" class="json-preview"></pre></section>
+    </div>
   </main>
 `;
 
 const pixelCanvas = document.querySelector('#pixelCanvas');
 const skeletonCanvas = document.querySelector('#skeletonCanvas');
 const renderCanvas = document.querySelector('#renderCanvas');
+const pixelEmptyHint = document.querySelector('#pixelEmptyHint');
 const partsEditor = document.querySelector('#partsEditor');
 const jsonPreview = document.querySelector('#jsonPreview');
 
@@ -105,6 +134,7 @@ function renderAll(rebuildEditor = false) {
   drawSkeleton();
   renderMonsterFromParts(renderCanvas, currentMonster(), state.previewState);
   if (rebuildEditor) renderPartsEditor();
+  pixelEmptyHint.hidden = Boolean(state.image);
   jsonPreview.textContent = JSON.stringify(currentMonster(), null, 2);
 }
 
