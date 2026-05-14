@@ -1,8 +1,8 @@
 const PALETTES = {
-  green: { body: '#50c878', belly: '#b4f2a3', eye: '#f7fff7', pupil: '#111827', nose: '#f59e0b', limb: '#2f9e55', line: '#162014' },
-  blue: { body: '#4dabf7', belly: '#a5d8ff', eye: '#f8fbff', pupil: '#0b1020', nose: '#ffd43b', limb: '#1971c2', line: '#101828' },
-  red: { body: '#ff6b6b', belly: '#ffc9c9', eye: '#fff5f5', pupil: '#1f0f0f', nose: '#ffd43b', limb: '#e03131', line: '#220b0b' },
-  purple: { body: '#9775fa', belly: '#e5dbff', eye: '#ffffff', pupil: '#120d24', nose: '#ffb86b', limb: '#7048e8', line: '#1d1233' }
+  green: { body: '#50c878', belly: '#b4f2a3', eye: '#f7fff7', pupil: '#111827', nose: '#f59e0b', limb: '#2f9e55', wing: '#8ce99a', accent: '#ffd43b', line: '#162014' },
+  blue: { body: '#4dabf7', belly: '#a5d8ff', eye: '#f8fbff', pupil: '#0b1020', nose: '#ffd43b', limb: '#1971c2', wing: '#74c0fc', accent: '#91f2ff', line: '#101828' },
+  red: { body: '#ff6b6b', belly: '#ffc9c9', eye: '#fff5f5', pupil: '#1f0f0f', nose: '#ffd43b', limb: '#e03131', wing: '#ffa8a8', accent: '#ffd43b', line: '#220b0b' },
+  purple: { body: '#9775fa', belly: '#e5dbff', eye: '#ffffff', pupil: '#120d24', nose: '#ffb86b', limb: '#7048e8', wing: '#b197fc', accent: '#f783ac', line: '#1d1233' }
 };
 
 export function renderMonsterFromParts(canvas, monsterJson, state = 'idle') {
