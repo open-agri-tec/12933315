@@ -1,11 +1,11 @@
 const PALETTES = {
-  green: { body: '#50c878', belly: '#b4f2a3', eye: '#f7fff7', pupil: '#111827', nose: '#f59e0b', limb: '#2f9e55', wing: '#8ce99a', accent: '#ffd43b', line: '#162014' },
-  blue: { body: '#4dabf7', belly: '#a5d8ff', eye: '#f8fbff', pupil: '#0b1020', nose: '#ffd43b', limb: '#1971c2', wing: '#74c0fc', accent: '#91f2ff', line: '#101828' },
-  red: { body: '#ff6b6b', belly: '#ffc9c9', eye: '#fff5f5', pupil: '#1f0f0f', nose: '#ffd43b', limb: '#e03131', wing: '#ffa8a8', accent: '#ffd43b', line: '#220b0b' },
-  purple: { body: '#9775fa', belly: '#e5dbff', eye: '#ffffff', pupil: '#120d24', nose: '#ffb86b', limb: '#7048e8', wing: '#b197fc', accent: '#f783ac', line: '#1d1233' }
+  green: { body: '#50c878', belly: '#b4f2a3', eye: '#f7fff7', pupil: '#111827', nose: '#f59e0b', limb: '#2f9e55', wing: '#8ce99a', pattern: '#22543d', accent: '#ffd43b', shadow: '#16412a', line: '#162014' },
+  blue: { body: '#4dabf7', belly: '#a5d8ff', eye: '#f8fbff', pupil: '#0b1020', nose: '#ffd43b', limb: '#1971c2', wing: '#74c0fc', pattern: '#1864ab', accent: '#91f2ff', shadow: '#0b3d66', line: '#101828' },
+  red: { body: '#ff6b6b', belly: '#ffc9c9', eye: '#fff5f5', pupil: '#1f0f0f', nose: '#ffd43b', limb: '#e03131', wing: '#ffa8a8', pattern: '#c92a2a', accent: '#ffd43b', shadow: '#7f1d1d', line: '#220b0b' },
+  purple: { body: '#9775fa', belly: '#e5dbff', eye: '#ffffff', pupil: '#120d24', nose: '#ffb86b', limb: '#7048e8', wing: '#b197fc', pattern: '#5f3dc4', accent: '#f783ac', shadow: '#34205f', line: '#1d1233' }
 };
 
-export function renderMonsterFromParts(canvas, monsterJson, state = 'idle') {
+export function renderMonsterFromParts(canvas, monsterJson, state = 'idle', options = {}) {
   canvas.width = monsterJson.canvasModel?.canvasWidth || 64;
   canvas.height = monsterJson.canvasModel?.canvasHeight || 64;
   const ctx = canvas.getContext('2d');
@@ -15,11 +15,11 @@ export function renderMonsterFromParts(canvas, monsterJson, state = 'idle') {
   const order = monsterJson.canvasModel?.partsOrder || Object.keys(monsterJson.parts || {});
   for (const key of order) {
     const part = monsterJson.parts?.[key];
-    if (part?.enabled) drawPart(ctx, applyStateToPart(key, part, state), palette, state);
+    if (part?.enabled) drawPart(ctx, applyStateToPart(key, part, state), palette, state, options);
   }
 }
 
-export function drawPart(ctx, part, palette, state) {
+export function drawPart(ctx, part, palette, state, options = {}) {
   if (!part?.enabled) return;
   const color = resolveColor(part, palette, state);
   if (state === 'sleep' && part.colorRole === 'eye') {
@@ -32,6 +32,8 @@ export function drawPart(ctx, part, palette, state) {
   if (part.type === 'circle') drawCirclePart(ctx, part, color);
   if (part.type === 'ellipse') drawEllipsePart(ctx, part, color);
   if (part.type === 'line') drawLinePart(ctx, part, color);
+  if (part.type === 'pixelMask') drawPixelMaskPart(ctx, part, color);
+  if (part.type === 'spritePatch') drawSpritePatchPart(ctx, part, options);
 }
 
 export function drawRectPart(ctx, part, color) {
@@ -64,6 +66,31 @@ export function drawLinePart(ctx, part, color) {
   ctx.stroke();
 }
 
+export function drawPixelMaskPart(ctx, part, color) {
+  ctx.fillStyle = color;
+  for (const pixel of part.pixels || []) {
+    const [px, py] = pixel;
+    ctx.fillRect(Math.round((part.x || 0) + px), Math.round((part.y || 0) + py), 1, 1);
+  }
+}
+
+export function drawSpritePatchPart(ctx, part, options = {}) {
+  const source = options.spriteSourceCanvas || imageDataToCanvas(options.spriteSourceImageData);
+  if (!source || !part.sourceRect || !part.target) return;
+  const { x, y, w, h } = part.sourceRect;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(source, Math.round(x), Math.round(y), Math.round(w), Math.round(h), Math.round(part.target.x), Math.round(part.target.y), Math.round(w), Math.round(h));
+}
+
+function imageDataToCanvas(imageData) {
+  if (!imageData) return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  canvas.getContext('2d').putImageData(imageData, 0, 0);
+  return canvas;
+}
+
 function applyStateToPart(key, part, state) {
   const p = structuredClone(part);
   if (state === 'happy') {
@@ -86,6 +113,10 @@ function applyStateToPart(key, part, state) {
 function movePart(part, dx, dy) {
   for (const key of ['x', 'x1', 'x2']) if (Number.isFinite(part[key])) part[key] += dx;
   for (const key of ['y', 'y1', 'y2']) if (Number.isFinite(part[key])) part[key] += dy;
+  if (part.target) {
+    if (Number.isFinite(part.target.x)) part.target.x += dx;
+    if (Number.isFinite(part.target.y)) part.target.y += dy;
+  }
 }
 
 function resolveColor(part, palette, state) {
