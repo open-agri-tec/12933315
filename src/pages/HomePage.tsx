@@ -1,17 +1,16 @@
 import React, { TouchEvent, useRef } from 'react';
-import { useFarm } from '../context/FarmContext';
-import MonsterCard from '../components/MonsterCard';
 import { Link } from 'react-router-dom';
-import NextActionCard from '../components/NextActionCard';
+import { useFarm } from '../context/FarmContext';
 import EmptyState from '../components/EmptyState';
+import FeedCard from '../components/FeedCard';
+import MainActionGrid from '../components/MainActionGrid';
+import MonsterHeroCard from '../components/MonsterHeroCard';
+import { formatShortDateTime } from '../components/designUtils';
 
-/**
- * ホーム画面。未給餌のエサ一覧を表示し、タマゴ/モンスターに与えることができます。
- */
 const HomePage: React.FC = () => {
   const { state, activeMonster, feedFood, switchActiveMonster } = useFarm();
   const touchStartX = useRef<number | null>(null);
-  const foods = activeMonster?.foods.filter(f => !f.fed) || [];
+  const pendingFoods = activeMonster?.foods.filter(food => !food.fed) || [];
   const logs = activeMonster?.logs || [];
   const hasMonster = state.monsters.length > 0;
   const activeIndex = activeMonster ? state.monsters.findIndex(monster => monster.id === activeMonster.id) : -1;
@@ -25,107 +24,70 @@ const HomePage: React.FC = () => {
     if (!canSwitch || touchStartX.current === null) return;
     const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
     const diff = endX - touchStartX.current;
-    if (Math.abs(diff) > 48) {
-      switchActiveMonster(diff > 0 ? -1 : 1);
-    }
+    if (Math.abs(diff) > 48) switchActiveMonster(diff > 0 ? -1 : 1);
     touchStartX.current = null;
   };
 
   return (
-    <div className="page home-page">
-      <h1>ホーム</h1>
-      <div className="home-dashboard">
-        <section className="home-monster-column">
-          <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <MonsterCard />
-          </div>
-          {canSwitch && (
-            <div className="monster-switcher" aria-label="タマゴ切り替え">
-              <button onClick={() => switchActiveMonster(-1)} aria-label="前のタマゴへ">←</button>
+    <div className="page home-page companion-page">
+      <section className="monster-command-zone" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <MonsterHeroCard monster={activeMonster} large />
+        <div className="under-hero-row">
+          {canSwitch ? (
+            <div className="monster-switcher" aria-label="個体切替">
+              <button type="button" onClick={() => switchActiveMonster(-1)} aria-label="前の個体へ">←</button>
               <span>{Math.max(0, activeIndex) + 1} / {state.monsters.length}</span>
-              <button onClick={() => switchActiveMonster(1)} aria-label="次のタマゴへ">→</button>
+              <button type="button" onClick={() => switchActiveMonster(1)} aria-label="次の個体へ">→</button>
             </div>
+          ) : (
+            <Link to="/egg/new" className="secondary-action">個体情報を登録</Link>
           )}
-          {hasMonster && (
-            <div className="add-egg-area">
-              <Link to="/egg/new" className="egg-add-link">＋ タマゴを作る</Link>
+          {hasMonster && <Link to="/egg/new" className="secondary-action">タマゴを追加</Link>}
+        </div>
+        <MainActionGrid disabled={!hasMonster} />
+      </section>
+
+      <div className="home-support-grid">
+        <section className="soft-card latest-record-card">
+          <div className="section-heading">
+            <h2>最新の成長記録</h2>
+            <span>{logs.length}件</span>
+          </div>
+          {logs.length > 0 ? (
+            <div className="mini-log-list">
+              {logs.slice(0, 4).map((log, index) => (
+                <p key={`${log.at}-${index}`}><time>{formatShortDateTime(log.at)}</time>{log.text}</p>
+              ))}
             </div>
+          ) : (
+            <p className="muted-text no-pad">エサ生成や給餌を行うと、反応と作業履歴がここに残ります。</p>
           )}
         </section>
 
-        <section className="home-status-column">
-          <NextActionCard monsters={state.monsters} activeMonster={activeMonster} />
-          <div className="panel-card">
-            <div className="section-heading">
-              <h2>状態・成長</h2>
-              <span>{activeMonster ? `経験値 ${activeMonster.exp}` : '未開始'}</span>
+        <section className="soft-card feed-candidate-card">
+          <div className="section-heading">
+            <h2>エサ候補</h2>
+            <span>{pendingFoods.length}件</span>
+          </div>
+          {pendingFoods.length > 0 ? (
+            <div className="feed-list compact-list">
+              {pendingFoods.slice(0, 3).map(food => <FeedCard key={food.id} food={food} onFeed={feedFood} compact />)}
             </div>
-            {activeMonster ? (
-              <dl className="info-list">
-                <div><dt>作物</dt><dd>{activeMonster.crop}</dd></div>
-                <div><dt>品種</dt><dd>{activeMonster.variety}</dd></div>
-                <div><dt>好み傾向</dt><dd>{activeMonster.tastes.join('・')}</dd></div>
-              </dl>
-            ) : (
-              <p className="muted-text">タマゴを作ると、ここに成長状況が表示されます。</p>
-            )}
-          </div>
-          <div className="home-buttons">
-            {hasMonster ? (
-              <>
-                <Link to="/feed" className="primary">エサを生成</Link>
-                <Link to="/observe">観察する</Link>
-                <Link to="/logs">記録を見る</Link>
-              </>
-            ) : (
-              <>
-                <span className="disabled-link primary">エサを生成</span>
-                <span className="disabled-link">観察する</span>
-                <span className="disabled-link">記録を見る</span>
-              </>
-            )}
-          </div>
-        </section>
-
-        <section className="home-side-column">
-          <div className="panel-card">
-            <div className="section-heading">
-              <h2>エサ候補</h2>
-              <span>{foods.length}件</span>
-            </div>
-            {foods.length > 0 ? (
-              <div className="food-list compact-list">
-                {foods.slice(0, 5).map(food => (
-                  <div key={food.id} className="food-card">
-                    <div className="food-name">{food.name}</div>
-                    <div className="food-meta">{food.tags.map(t => `＃${t}`).join('　')}</div>
-                    <div className="food-meta">{food.memo || 'メモなし'}</div>
-                    <button className="gold" onClick={() => feedFood(food.id)}>このエサをあげる</button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="未給餌のエサはありません"
-                description="作業メモや観察メモからエサを生成できます。"
-                icon="🍽️"
-                actions={[{ label: 'エサを作る', to: '/feed', primary: true }]}
-              />
-            )}
-          </div>
-          <div className="panel-card">
-            <div className="section-heading">
-              <h2>最近の記録</h2>
-              <span>{logs.length}件</span>
-            </div>
-            {logs.length > 0 ? (
-              <div className="mini-log-list">
-                {logs.slice(0, 4).map((log, index) => <p key={`${log.at}-${index}`}>{log.text}</p>)}
-              </div>
-            ) : (
-              <p className="muted-text">エサ生成や給餌を行うと履歴が残ります。</p>
-            )}
-          </div>
+          ) : hasMonster ? (
+            <EmptyState
+              title="未給餌エサはありません"
+              description="今日の観察や作業メモをエサにして、個体へ渡せます。"
+              icon=""
+              actions={[{ label: 'エサを作る', to: '/feed', primary: true }]}
+            />
+          ) : (
+            <EmptyState
+              title="最初のタマゴを作成してください"
+              description="農業記録を受け取る中心個体を登録します。"
+              icon=""
+              actions={[{ label: 'タマゴを作る', to: '/egg/new', primary: true }]}
+            />
+          )}
         </section>
       </div>
     </div>
