@@ -5,8 +5,7 @@ import FeedPage from './pages/FeedPage';
 import ObservePage from './pages/ObservePage';
 import LogPage from './pages/LogPage';
 import EggCreatePage from './pages/EggCreatePage';
-import Navbar from './components/Navbar';
-import Header from './components/Header';
+import ResponsiveShell from './components/ResponsiveShell';
 import { FarmProvider } from './context/FarmContext';
 
 // Main application component containing the router and navigation.
@@ -14,9 +13,7 @@ const App: React.FC = () => {
   return (
     <FarmProvider>
       <Router>
-        <div className="app-container">
-          {/* アプリ共通ヘッダー */}
-          <Header />
+        <ResponsiveShell>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/egg/new" element={<EggCreatePage />} />
@@ -25,9 +22,7 @@ const App: React.FC = () => {
             {/* 記録ページは複数件のログを扱うため複数形に */}
             <Route path="/logs" element={<LogPage />} />
           </Routes>
-          {/* Persistent bottom navigation bar */}
-          <Navbar />
-        </div>
+        </ResponsiveShell>
       </Router>
     </FarmProvider>
   );

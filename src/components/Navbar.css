@@ -30,3 +30,8 @@
 @media (prefers-color-scheme: dark) {
   /* 色設定はroot変数で調整するためここでは特に追加しない */
 }
+@media (min-width: 900px) {
+  .bottom-nav {
+    display: none;
+  }
+}

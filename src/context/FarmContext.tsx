@@ -334,11 +334,23 @@ export const FarmProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const createEgg = (form: EggFormData) => {
     const egg = makeEgg(form);
+    const createdAt = new Date().toISOString();
+    const eggWithLog: Monster = {
+      ...egg,
+      logs: [
+        {
+          type: '個体作成',
+          at: createdAt,
+          text: `${egg.name}を作成しました`,
+          memo: `${egg.crop} / ${egg.variety} / ${egg.fieldAddress} / ${egg.cultivationType}`
+        }
+      ]
+    };
     setState(prev => ({
-      activeMonsterId: egg.id,
-      monsters: [...prev.monsters, egg]
+      activeMonsterId: eggWithLog.id,
+      monsters: [...prev.monsters, eggWithLog]
     }));
-    return egg;
+    return eggWithLog;
   };
 
   const switchActiveMonster = (direction: -1 | 1) => {
