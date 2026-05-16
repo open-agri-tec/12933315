@@ -33,3 +33,17 @@
   line-height: 1.35;
   white-space: pre; /* 改行をそのまま表示 */
 }
+@media (min-width: 900px) {
+  .header {
+    padding: 22px 28px 8px;
+  }
+
+  .brand h1 {
+    font-size: 24px;
+  }
+
+  .brand .sub,
+  .clock {
+    font-size: 13px;
+  }
+}
