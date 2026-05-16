@@ -1,32 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { LogEntry, useFarm } from '../context/FarmContext';
 import EmptyState from '../components/EmptyState';
-import StatSummaryCards from '../components/StatSummaryCards';
+import FeedLogCard from '../components/FeedLogCard';
 import LogFilterChips, { LogFilter } from '../components/LogFilterChips';
+import MainActionGrid from '../components/MainActionGrid';
+import MonsterHeroCard from '../components/MonsterHeroCard';
+import StatSummaryCards from '../components/StatSummaryCards';
+import { LogEntry, useFarm } from '../context/FarmContext';
 
-const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit'
-});
-
-const reactionEmoji: Record<string, string> = {
-  大好物: '😋',
-  普通: '🌱',
-  苦手: '💦'
-};
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '--/-- --:--';
-  return dateFormatter.format(date);
-}
-
-function logKind(log: LogEntry): '生成' | '給餌' | '反応' | 'その他' {
-  if (log.reaction) return '反応';
-  if (log.type === '生成' || log.type === '給餌') return log.type;
-  return 'その他';
+function logKind(log: LogEntry): string {
+  if (log.type === '生成') return 'エサ生成';
+  if (log.type === '給餌') return '給餌';
+  if (log.type === '個体作成') return '個体作成';
+  if (log.type === 'エクスポート') return 'エクスポート';
+  return log.type || '記録';
 }
 
 function matchesFilter(log: LogEntry, filter: LogFilter): boolean {
@@ -48,14 +34,11 @@ function extractTags(log: LogEntry): string[] {
 }
 
 function displayText(log: LogEntry): string {
-  if (log.foodName && log.reaction) return `${log.reaction}：${log.foodName}`;
-  if (log.foodName && log.type === '生成') return `生成：${log.foodName}`;
+  if (log.foodName && log.reaction) return log.foodName;
+  if (log.foodName && log.type === '生成') return log.foodName;
   return log.text || '記録内容なし';
 }
 
-/**
- * 記録画面。栽培ログを閲覧し、データの書き出しや初期化を行います。
- */
 const LogPage: React.FC = () => {
   const { state, activeMonster, resetFarm } = useFarm();
   const [filter, setFilter] = useState<LogFilter>('すべて');
@@ -69,94 +52,68 @@ const LogPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'local-ai-farm-ver0.6-data.json';
+    a.download = 'local-ai-farm-data.json';
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleReset = () => {
-    if (window.confirm('ローカル保存データを初期化しますか？')) resetFarm();
+    if (window.confirm('ローカル保存データを初期化しますか？この操作は戻せません。')) resetFarm();
   };
 
   if (!activeMonster) {
     return (
-      <div className="page log-page">
-        <h1>記録</h1>
-        <EmptyState
-          title="最初のタマゴを作成してください"
-          description="作物・圃場・作型を登録すると、育成対象の個体が生まれます。"
-          icon="🥚"
-          actions={[{ label: 'タマゴを作る', to: '/egg/new', primary: true }]}
-        />
+      <div className="page log-page companion-page">
+        <EmptyState title="最初のタマゴを作成してください" description="作物・圃場・作型を登録すると、記録を蓄積できます。" icon="" actions={[{ label: 'タマゴを作る', to: '/egg/new', primary: true }]} />
       </div>
     );
   }
 
   return (
-    <div className="page log-page">
-      <h1>記録</h1>
+    <div className="page log-page companion-page">
+      <MonsterHeroCard monster={activeMonster} />
+      <MainActionGrid />
+
       <div className="logs-layout">
         <section className="logs-main-column">
           <StatSummaryCards activeMonster={activeMonster} logs={logs} foods={foods} />
-          <section className="recent-logs" aria-label="最近の記録">
+          <section className="glass-panel recent-logs" aria-label="成長記録">
             <div className="section-heading">
-              <h2>ログ一覧</h2>
+              <h2>成長記録</h2>
               <span>{filteredLogs.length} / {logs.length}件</span>
             </div>
             <LogFilterChips value={filter} onChange={setFilter} />
             {logs.length === 0 ? (
-              <EmptyState
-                title="まだ記録がありません"
-                description="エサを作る、または給餌を行うと、ここに履歴が残ります。"
-                icon="📝"
-                actions={[{ label: 'エサを作る', to: '/feed', primary: true }, { label: 'ホームへ戻る', to: '/' }]}
-              />
+              <EmptyState title="まだ記録がありません" description="エサを作る、または給餌を行うと履歴が残ります。" icon="" actions={[{ label: 'エサを作る', to: '/feed', primary: true }]} />
             ) : filteredLogs.length === 0 ? (
-              <EmptyState
-                title="この条件の記録はありません"
-                description="別のフィルターを選ぶと、他の履歴を確認できます。"
-                icon="🔎"
-                actions={[{ label: 'すべてを見る', to: '/logs', primary: true }]}
-              />
+              <EmptyState title="この条件の記録はありません" description="別のフィルターを選ぶと、他の履歴を確認できます。" icon="" />
             ) : (
               <div className="log-list">
-                {filteredLogs.slice(0, 80).map((log, idx) => {
-                  const kind = logKind(log);
-                  const tags = extractTags(log);
-                  const reaction = log.reaction;
-                  const expGain = typeof log.expGain === 'number' ? log.expGain : undefined;
-                  return (
-                    <article key={`${log.at}-${idx}`} className={`log-entry log-entry-${kind}`}>
-                      <div className="log-main">
-                        <div className="log-time">{formatDate(log.at)}</div>
-                        <div className="log-title-row">
-                          <span className="log-type-badge">{kind}</span>
-                          <strong>{displayText(log)}</strong>
-                        </div>
-                        {log.memo && <div className="log-memo">{log.memo}</div>}
-                        {tags.length > 0 && <div className="log-tags" aria-label="タグ">{tags.map((tag, tagIndex) => <span key={`${tag}-${tagIndex}`}>#{tag}</span>)}</div>}
-                      </div>
-                      {reaction && (
-                        <aside className="reaction-panel" aria-label="反応">
-                          <span className="reaction-emoji">{reactionEmoji[reaction] || '✨'}</span>
-                          <strong>{reaction}</strong>
-                          {typeof log.score === 'number' && <span>score {log.score}</span>}
-                          {expGain !== undefined && <span>+{expGain}経験値</span>}
-                        </aside>
-                      )}
-                    </article>
-                  );
-                })}
+                {filteredLogs.slice(0, 80).map((log, idx) => (
+                  <FeedLogCard
+                    key={`${log.at}-${idx}`}
+                    log={log}
+                    monster={activeMonster}
+                    tags={extractTags(log)}
+                    title={displayText(log)}
+                    kind={logKind(log)}
+                  />
+                ))}
               </div>
             )}
           </section>
         </section>
-        <aside className="panel-card log-tools-panel">
-          <h2>JSON書き出し / 初期化</h2>
-          <p className="muted-text">ローカル保存データのバックアップや、検証用の初期化を行えます。</p>
+
+        <aside id="tools" className="soft-card log-tools-panel">
+          <div className="section-heading compact-heading"><h2>保存・連携</h2><span>ローカル</span></div>
+          <p className="muted-text no-pad">JSON書き出しで検証用バックアップを保存できます。初期化は危険操作として分離しています。</p>
           <div className="log-actions">
-            <button onClick={handleExport}>JSONを書き出す</button>
-            <button className="gold" onClick={handleReset}>初期化</button>
+            <button className="secondary-button" type="button" onClick={handleExport}>JSONを書き出す</button>
+          </div>
+          <div className="danger-zone">
+            <h3>危険操作</h3>
+            <p>ローカル保存データを初期状態に戻します。</p>
+            <button className="danger-button" type="button" onClick={handleReset}>初期化する</button>
           </div>
         </aside>
       </div>

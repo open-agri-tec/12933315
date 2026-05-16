@@ -1,8 +1,7 @@
 import React from 'react';
-import Header from './Header';
+import EnvironmentHeader from './EnvironmentHeader';
 import SideNav from './SideNav';
 import BottomNav from './BottomNav';
-import CurrentMonsterBar from './CurrentMonsterBar';
 
 interface ResponsiveShellProps {
   children: React.ReactNode;
@@ -16,9 +15,8 @@ const ResponsiveShell: React.FC<ResponsiveShellProps> = ({ children }) => {
         <SideNav />
       </aside>
       <div className="shell-main">
-        <Header />
+        <EnvironmentHeader />
         <main className="shell-content">
-          <CurrentMonsterBar />
           {children}
         </main>
       </div>

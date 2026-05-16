@@ -4,8 +4,8 @@ import './Navbar.css';
 
 const items = [
   { to: '/', label: 'ホーム' },
-  { to: '/egg/new', label: 'タマゴ' },
   { to: '/feed', label: 'エサ生成' },
+  { to: '/feeding', label: '給餌' },
   { to: '/observe', label: '観察' },
   { to: '/logs', label: '記録' }
 ];
